@@ -1,0 +1,2 @@
+/usr/bin/ar qc librestructure.a  CMakeFiles/restructure.dir/cellrearrangement.cpp.o CMakeFiles/restructure.dir/cellrearrangement2.cpp.o CMakeFiles/restructure.dir/celldivision.cpp.o CMakeFiles/restructure.dir/cellintersection.cpp.o CMakeFiles/restructure.dir/vertexoverlap.cpp.o CMakeFiles/restructure.dir/removal.cpp.o
+/usr/bin/ranlib librestructure.a
