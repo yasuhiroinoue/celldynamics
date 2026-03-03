@@ -530,12 +530,20 @@ int main(void) {
     std::cout << "Fixed division axis theta = " << fixed_division_theta << std::endl;
   }
 
+  bool fixed_cell_time_init = false;
+  double fixed_cell_time_value = 0.0;
+  if (const char *env = std::getenv("CELLDYN_FIXED_CELL_TIME_INIT")) {
+    fixed_cell_time_value = std::atof(env);
+    fixed_cell_time_init = true;
+    std::cout << "Fixed initial cell_time = " << fixed_cell_time_value << std::endl;
+  }
+
   std::uniform_int_distribution<> rand_cidx(0, p_g->p_c.size() - 1);
   std::uniform_real_distribution<> rand_axis(0, 2.0 * M_PI);
   std::uniform_real_distribution<> cell_time_init(0, division_step * DELTA_TIME);
 
   for(int cidx = 0; cidx < (int)p_g->p_c.size(); ++cidx) {
-    p_g->p_c[cidx]->cell_time = cell_time_init(mt);
+    p_g->p_c[cidx]->cell_time = fixed_cell_time_init ? fixed_cell_time_value : cell_time_init(mt);
   }
 
   for (unsigned int num = 1; num <= STEP_END; num++) {
