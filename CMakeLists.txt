@@ -21,6 +21,7 @@ add_executable(
   _parameters.cpp
   output.cpp
   force.cpp
+  force_debug.cpp
   ODE_solver.cpp
 )
 target_link_libraries(${PROJECT_NAME} m restructure)

@@ -5,6 +5,7 @@
 #include "ODE_solver.h"
 #include "_parameters.h"
 #include "force.h"
+#include "force_debug.h"
 
 namespace ODE_solver {
 //1次精度で微分方程式を解く（オイラー法）。
@@ -16,7 +17,7 @@ void motionVertexFirst(Global *p_g) {
 
   force::OMP_Reduction_Frc(p_g, 0, 1);
   force::OMP_Reduction_Lt(p_g);
-
+  force_debug::dump_force_snapshot(p_g, 0, "euler");
 
   #pragma omp parallel for num_threads(THREAD_NUM)
   for (int i = 0; i < (int)p_g->p_v.size(); i++) {
@@ -40,6 +41,7 @@ void motionVertexSecond(Global *p_g) {
   force::calcAreaForce(p_g, 0);
 
   force::OMP_Reduction_Frc(p_g, 0, 2);
+  force_debug::dump_force_snapshot(p_g, 0, "midpoint_stage1");
 
   #pragma omp parallel for num_threads(THREAD_NUM)
   for (int i = 0; i < (int)p_g->p_v.size(); i++) {
@@ -54,6 +56,7 @@ void motionVertexSecond(Global *p_g) {
 
   force::OMP_Reduction_Frc(p_g, 1, 2);
   force::OMP_Reduction_Lt(p_g);
+  force_debug::dump_force_snapshot(p_g, 1, "midpoint_stage2");
 
   #pragma omp parallel for num_threads(THREAD_NUM)
   for (int i = 0; i < (int)p_g->p_v.size(); i++) {
