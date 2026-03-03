@@ -15,6 +15,7 @@
 #include <time.h>
 #include <random>
 #include <omp.h>
+#include <cstdlib>
 
 #include "vec.h"
 #include "_class_and_variables.h"
@@ -502,8 +503,33 @@ int main(void) {
 
   int division_step = TIME_CELL_DIVISION / DELTA_TIME;
 
+  unsigned int mt_seed = 0;
+  bool mt_seed_fixed = false;
+  if (const char *env = std::getenv("CELLDYN_MT_SEED")) {
+    mt_seed = static_cast<unsigned int>(std::strtoul(env, nullptr, 10));
+    mt_seed_fixed = true;
+  }
+
   std::random_device rnd;
-  std::mt19937 mt(rnd());
+  std::mt19937 mt(mt_seed_fixed ? mt_seed : rnd());
+  if (mt_seed_fixed) {
+    std::cout << "MT seed (division RNG) = " << mt_seed << std::endl;
+  }
+
+  int fixed_division_cidx = -1;
+  if (const char *env = std::getenv("CELLDYN_FIXED_DIVISION_CIDX")) {
+    fixed_division_cidx = std::atoi(env);
+    std::cout << "Fixed division cidx = " << fixed_division_cidx << std::endl;
+  }
+
+  bool fixed_division_axis = false;
+  double fixed_division_theta = 0.0;
+  if (const char *env = std::getenv("CELLDYN_FIXED_DIVISION_AXIS_THETA")) {
+    fixed_division_theta = std::atof(env);
+    fixed_division_axis = true;
+    std::cout << "Fixed division axis theta = " << fixed_division_theta << std::endl;
+  }
+
   std::uniform_int_distribution<> rand_cidx(0, p_g->p_c.size() - 1);
   std::uniform_real_distribution<> rand_axis(0, 2.0 * M_PI);
   std::uniform_real_distribution<> cell_time_init(0, division_step * DELTA_TIME);
@@ -554,9 +580,11 @@ int main(void) {
     */
 
 
-    int cidx = rand_cidx(mt);
+    int cidx = (fixed_division_cidx >= 0 && fixed_division_cidx < (int)p_g->p_c.size())
+                   ? fixed_division_cidx
+                   : rand_cidx(mt);
     _vec<double> axis;
-    double theta = rand_axis(mt);
+    double theta = fixed_division_axis ? fixed_division_theta : rand_axis(mt);
     axis.x = cos(theta);
     axis.y = sin(theta);
     axis.z = 0.0;
