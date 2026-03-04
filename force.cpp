@@ -8,8 +8,46 @@
 #include "_class_and_variables.h"
 #include "vec.h"
 #include <omp.h>
+#include <fstream>
+#include <cstdlib>
+#include <string>
 
 namespace force {
+namespace {
+bool term_debug_enabled() {
+  const char *e = std::getenv("CELLDYN_TERM_DEBUG");
+  return e && std::string(e) == "1";
+}
+int term_debug_vidx() {
+  const char *e = std::getenv("CELLDYN_TERM_DEBUG_VIDX");
+  if(!e) return -1;
+  return std::atoi(e);
+}
+unsigned int term_debug_step_start() {
+  const char *e = std::getenv("CELLDYN_TERM_DEBUG_STEP_START");
+  if(!e) return 0;
+  return (unsigned int)std::strtoul(e, nullptr, 10);
+}
+unsigned int term_debug_step_end() {
+  const char *e = std::getenv("CELLDYN_TERM_DEBUG_STEP_END");
+  if(!e) return 0;
+  return (unsigned int)std::strtoul(e, nullptr, 10);
+}
+std::string term_debug_path() {
+  const char *e = std::getenv("CELLDYN_TERM_DEBUG_PATH");
+  if(!e || std::string(e).empty()) return "term_debug.csv";
+  return std::string(e);
+}
+void log_term(const Global *p_g, const char *term, int vidx, const _vec<double> &v) {
+  if(!term_debug_enabled()) return;
+  if((int)p_g->step < (int)term_debug_step_start()) return;
+  if(term_debug_step_end() > 0 && p_g->step > term_debug_step_end()) return;
+  if(vidx != term_debug_vidx()) return;
+  std::ofstream ofs(term_debug_path(), std::ios::app);
+  ofs << p_g->step << "," << term << "," << vidx << "," << v.x << "," << v.y << "," << v.z << "\n";
+}
+}
+
 void calcLineForce(Global *p_g, int deg) {
   //deg: degree accuracy
   #pragma omp parallel for num_threads(THREAD_NUM)
@@ -47,6 +85,10 @@ void calcLineForce(Global *p_g, int deg) {
 
       vp[0]->frc_thread[id_tnum] -= frc_tmp;
       vp[1]->frc_thread[id_tnum] += frc_tmp;
+      if (deg == 0) {
+        log_term(p_g, "line_elastic", lp->vi[0], (-1.0) * frc_tmp);
+        log_term(p_g, "line_elastic", lp->vi[1], frc_tmp);
+      }
     }
 
     //線張力
@@ -96,6 +138,10 @@ void calcLineForce(Global *p_g, int deg) {
 
       vp[0]->frc_thread[id_tnum] -= frc_tmp;
       vp[1]->frc_thread[id_tnum] += frc_tmp;
+      if (deg == 0) {
+        log_term(p_g, "line_tension", lp->vi[0], (-1.0) * frc_tmp);
+        log_term(p_g, "line_tension", lp->vi[1], frc_tmp);
+      }
     }
 
     /*ややこしいコードになった上に挙動がおかしいのでコメントアウト
@@ -199,6 +245,9 @@ void calcAreaForce(Global *p_g, int deg) {
 
       _vec<double> frc_tmp = (-1.0) * cp->K_AREA * (i_area - cp->AREA_EQ) * s_grad;
       vp[1]->frc_thread[id_tnum] += frc_tmp;
+      if (deg == 0) {
+        log_term(p_g, "area", cp->vi[j], frc_tmp);
+      }
     }
   }
 };
