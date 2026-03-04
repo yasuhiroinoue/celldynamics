@@ -226,6 +226,11 @@ void cellDivision(Global *p_g, int cellula_idx, _vec<double> axis) {
 
   // vertex v1
   Vertex *v1 = new Vertex;
+  for(int tnum = 0; tnum < THREAD_NUM; ++tnum) {
+    v1->frc_thread[tnum] = _vec<double>(0.0, 0.0, 0.0);
+  }
+  v1->frc[0] = _vec<double>(0.0, 0.0, 0.0);
+  v1->frc[1] = _vec<double>(0.0, 0.0, 0.0);
   v1->li.push_back(crosspoint[0].first);
   v1->li.push_back(l1_idx);
   v1->li.push_back(l3_idx);
@@ -239,6 +244,11 @@ void cellDivision(Global *p_g, int cellula_idx, _vec<double> axis) {
 
   // vertex v2
   Vertex *v2 = new Vertex;
+  for(int tnum = 0; tnum < THREAD_NUM; ++tnum) {
+    v2->frc_thread[tnum] = _vec<double>(0.0, 0.0, 0.0);
+  }
+  v2->frc[0] = _vec<double>(0.0, 0.0, 0.0);
+  v2->frc[1] = _vec<double>(0.0, 0.0, 0.0);
   v2->li.push_back(crosspoint[1].first);
   v2->li.push_back(l2_idx);
   v2->li.push_back(l3_idx);
@@ -270,6 +280,9 @@ void cellDivision(Global *p_g, int cellula_idx, _vec<double> axis) {
 
   // line l1
   Line *l1 = new Line;
+  for(int tnum = 0; tnum < THREAD_NUM; ++tnum) {
+    l1->lt_thread[tnum] = 0.0;
+  }
   l1->vi[0] = v1_idx;
   l1->vi[1] = epoint_idx[1];
   for(int cidx: p_g->p_l[crosspoint[0].first]->ci) {
@@ -285,6 +298,9 @@ void cellDivision(Global *p_g, int cellula_idx, _vec<double> axis) {
 
   // line l2
   Line *l2 = new Line;
+  for(int tnum = 0; tnum < THREAD_NUM; ++tnum) {
+    l2->lt_thread[tnum] = 0.0;
+  }
   l2->vi[0] = v2_idx;
   l2->vi[1] = epoint_idx[2];
   for(int cidx: p_g->p_l[crosspoint[1].first]->ci) {
@@ -300,6 +316,9 @@ void cellDivision(Global *p_g, int cellula_idx, _vec<double> axis) {
 
   // line l3
   Line *l3 = new Line;
+  for(int tnum = 0; tnum < THREAD_NUM; ++tnum) {
+    l3->lt_thread[tnum] = 0.0;
+  }
   l3->vi[0] = v1_idx;
   l3->vi[1] = v2_idx;
   l3->ci.push_back(cellula_idx);
