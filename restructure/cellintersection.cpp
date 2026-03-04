@@ -628,7 +628,7 @@ void cellIntersection(Global *p_g) {
 
       std::cout << "  Intersection type: ";
       std::cout << vinter_degree << " " << vinter_outside << " " << vinter_lobs;
-      std::cout << ", vidx: " << vidx << ", cidx: " << cidx << std::endl;
+      std::cout << ", vidx: " << vidx << ", cidx: " << cidx << ", lobs: " << lobs_idx << std::endl;
 
       bool dealed = true;
       if(vinter_degree == 2 && vinter_outside == 2 && vinter_lobs == 0) {
