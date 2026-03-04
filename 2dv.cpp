@@ -500,6 +500,13 @@ int main(void) {
   output::init_outputReconnection(p_g);
 
   int STEP_RECONNECT = (int)(TIME_RECONNECT / DELTA_TIME);
+  if (const char *env = std::getenv("CELLDYN_STEP_RECONNECT")) {
+    int v = std::atoi(env);
+    if (v > 0) {
+      STEP_RECONNECT = v;
+      std::cout << "STEP_RECONNECT override = " << STEP_RECONNECT << std::endl;
+    }
+  }
 
   int division_step = TIME_CELL_DIVISION / DELTA_TIME;
 
@@ -507,6 +514,18 @@ int main(void) {
   if (const char *env = std::getenv("CELLDYN_ENABLE_RESTRUCTURE")) {
     enable_restructure = std::string(env) != "0";
     std::cout << "Enable restructure = " << (enable_restructure ? 1 : 0) << std::endl;
+  }
+
+  bool enable_intersection = true;
+  if (const char *env = std::getenv("CELLDYN_ENABLE_INTERSECTION")) {
+    enable_intersection = std::string(env) != "0";
+    std::cout << "Enable intersection/remove = " << (enable_intersection ? 1 : 0) << std::endl;
+  }
+
+  bool enable_rearrange = true;
+  if (const char *env = std::getenv("CELLDYN_ENABLE_REARRANGE")) {
+    enable_rearrange = std::string(env) != "0";
+    std::cout << "Enable rearrange = " << (enable_rearrange ? 1 : 0) << std::endl;
   }
 
   bool enable_division = true;
@@ -565,7 +584,7 @@ int main(void) {
     calcCenter(p_g);
 
     //
-    if(enable_restructure && num % STEP_RECONNECT == (unsigned int)STEP_RECONNECT / 2) {
+    if(enable_restructure && enable_intersection && num % STEP_RECONNECT == (unsigned int)STEP_RECONNECT / 2) {
       restructure::cellIntersection(p_g);
       calcCenter(p_g);
       restructure::removeTriangleVoid(p_g);
@@ -573,7 +592,7 @@ int main(void) {
     //
 
     //	std::cout << "rearrange" << std::endl;
-    if ( enable_restructure && (p_g->step % STEP_RECONNECT) == 0 ) {
+    if ( enable_restructure && enable_rearrange && (p_g->step % STEP_RECONNECT) == 0 ) {
       restructure::cellRearrange2(p_g);
       calcCenter(p_g);
     }
