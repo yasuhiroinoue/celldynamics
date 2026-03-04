@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
+#include <iomanip>
 
 namespace force {
 namespace {
@@ -44,7 +45,17 @@ void log_term(const Global *p_g, const char *term, int vidx, const _vec<double> 
   if(term_debug_step_end() > 0 && p_g->step > term_debug_step_end()) return;
   if(vidx != term_debug_vidx()) return;
   std::ofstream ofs(term_debug_path(), std::ios::app);
+  ofs << std::scientific << std::setprecision(17);
   ofs << p_g->step << "," << term << "," << vidx << "," << v.x << "," << v.y << "," << v.z << "\n";
+}
+void log_mid_scalar(const Global *p_g, const char *name, int vidx, int cidx, int lidx, double value) {
+  if(!term_debug_enabled()) return;
+  if((int)p_g->step < (int)term_debug_step_start()) return;
+  if(term_debug_step_end() > 0 && p_g->step > term_debug_step_end()) return;
+  if(vidx != term_debug_vidx()) return;
+  std::ofstream ofs(term_debug_path(), std::ios::app);
+  ofs << std::scientific << std::setprecision(17);
+  ofs << p_g->step << "," << name << "," << vidx << "," << value << "," << cidx << "," << lidx << "\n";
 }
 }
 
@@ -68,6 +79,14 @@ void calcLineForce(Global *p_g, int deg) {
       double ij_length = ij_line.norm();
 
       i_length += ij_length;
+    }
+
+    bool watch_in_cell = false;
+    for (int j = 0; j < (int)cp->vi.size(); j++) {
+      if (cp->vi[j] == term_debug_vidx()) { watch_in_cell = true; break; }
+    }
+    if (deg == 0 && watch_in_cell) {
+      log_mid_scalar(p_g, "mid_i_length", term_debug_vidx(), i, -1, i_length);
     }
 
     //線ごとに頂点を引っ張ってきて勾配と力を計算する。弾性力
@@ -118,10 +137,17 @@ void calcLineForce(Global *p_g, int deg) {
       //frc_tmp += (div*div*div*div)*l_grad*K1_PCP_LENGTH;
       double sint_t = sin(2.0 * M_PI * (cp->cell_time) / cp->cell_T - cp->cell_phase);
       double line_tension_pcp = 0.0;
+      bool watch_on_line = (lp->vi[0] == term_debug_vidx() || lp->vi[1] == term_debug_vidx());
 
       //if( lp->ci.size() != 1 ){//境界型エッジには作用させない
       line_tension_pcp = pow(div, power_pcp) * lp->K1_PCP_LENGTH * (sint_t + 1.0);
       //}
+
+      if (deg == 0 && watch_on_line) {
+        log_mid_scalar(p_g, "mid_div", term_debug_vidx(), i, cp->li[j], div);
+        log_mid_scalar(p_g, "mid_sint", term_debug_vidx(), i, cp->li[j], sint_t);
+        log_mid_scalar(p_g, "mid_line_tension_pcp", term_debug_vidx(), i, cp->li[j], line_tension_pcp);
+      }
 
       frc_tmp += line_tension_pcp * l_grad;
 
