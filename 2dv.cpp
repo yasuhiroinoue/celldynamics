@@ -503,6 +503,18 @@ int main(void) {
 
   int division_step = TIME_CELL_DIVISION / DELTA_TIME;
 
+  bool enable_restructure = true;
+  if (const char *env = std::getenv("CELLDYN_ENABLE_RESTRUCTURE")) {
+    enable_restructure = std::string(env) != "0";
+    std::cout << "Enable restructure = " << (enable_restructure ? 1 : 0) << std::endl;
+  }
+
+  bool enable_division = true;
+  if (const char *env = std::getenv("CELLDYN_ENABLE_DIVISION")) {
+    enable_division = std::string(env) != "0";
+    std::cout << "Enable division = " << (enable_division ? 1 : 0) << std::endl;
+  }
+
   unsigned int mt_seed = 0;
   bool mt_seed_fixed = false;
   if (const char *env = std::getenv("CELLDYN_MT_SEED")) {
@@ -553,7 +565,7 @@ int main(void) {
     calcCenter(p_g);
 
     //
-    if(num % STEP_RECONNECT == (unsigned int)STEP_RECONNECT / 2) {
+    if(enable_restructure && num % STEP_RECONNECT == (unsigned int)STEP_RECONNECT / 2) {
       restructure::cellIntersection(p_g);
       calcCenter(p_g);
       restructure::removeTriangleVoid(p_g);
@@ -561,7 +573,7 @@ int main(void) {
     //
 
     //	std::cout << "rearrange" << std::endl;
-    if ( (p_g->step % STEP_RECONNECT) == 0 ) {
+    if ( enable_restructure && (p_g->step % STEP_RECONNECT) == 0 ) {
       restructure::cellRearrange2(p_g);
       calcCenter(p_g);
     }
@@ -596,7 +608,7 @@ int main(void) {
     axis.x = cos(theta);
     axis.y = sin(theta);
     axis.z = 0.0;
-    if(p_g->p_c[cidx]->cell_time / DELTA_TIME >= division_step && restructure::isConvex(p_g, cidx)) {
+    if(enable_division && p_g->p_c[cidx]->cell_time / DELTA_TIME >= division_step && restructure::isConvex(p_g, cidx)) {
       try {
         restructure::cellDivision(p_g, cidx, axis);
         p_g->p_c[cidx]->cell_time = 0.0;
