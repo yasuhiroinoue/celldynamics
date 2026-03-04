@@ -585,6 +585,7 @@ int main(void) {
 
     //
     if(enable_restructure && enable_intersection && num % STEP_RECONNECT == (unsigned int)STEP_RECONNECT / 2) {
+      std::cout << "[step " << p_g->step << "] intersection_phase" << std::endl;
       restructure::cellIntersection(p_g);
       calcCenter(p_g);
       restructure::removeTriangleVoid(p_g);
@@ -593,6 +594,7 @@ int main(void) {
 
     //	std::cout << "rearrange" << std::endl;
     if ( enable_restructure && enable_rearrange && (p_g->step % STEP_RECONNECT) == 0 ) {
+      std::cout << "[step " << p_g->step << "] rearrange_phase" << std::endl;
       restructure::cellRearrange2(p_g);
       calcCenter(p_g);
     }
