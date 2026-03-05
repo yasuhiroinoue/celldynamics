@@ -577,7 +577,25 @@ int main(void) {
     p_g->p_c[cidx]->cell_time = fixed_cell_time_init ? fixed_cell_time_value : cell_time_init(mt);
   }
 
-  for (unsigned int num = 1; num <= STEP_END; num++) {
+  unsigned int step_end = STEP_END;
+  if (const char *env = std::getenv("CELLDYN_STEP_END")) {
+    unsigned int v = (unsigned int)std::strtoul(env, nullptr, 10);
+    if (v > 0) {
+      step_end = v;
+      std::cout << "STEP_END override = " << step_end << std::endl;
+    }
+  }
+
+  unsigned int period_paraview = PERIOD_PARAVIEW;
+  if (const char *env = std::getenv("CELLDYN_PERIOD_PARAVIEW")) {
+    unsigned int v = (unsigned int)std::strtoul(env, nullptr, 10);
+    if (v > 0) {
+      period_paraview = v;
+      std::cout << "PERIOD_PARAVIEW override = " << period_paraview << std::endl;
+    }
+  }
+
+  for (unsigned int num = 1; num <= step_end; num++) {
     p_g->step++;
 
     //	std::cout << "center" << std::endl;
@@ -661,7 +679,7 @@ int main(void) {
       exit(0);
     }
 
-    if (p_g->step % PERIOD_PARAVIEW == 0) {
+    if (p_g->step % period_paraview == 0) {
       //		std::cout << "vtk" << std::endl;
       (void)output::outputVTK(p_g, p_g->step);
       output::outputReconnection(p_g);

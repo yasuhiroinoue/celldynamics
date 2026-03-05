@@ -25,3 +25,6 @@ add_executable(
   ODE_solver.cpp
 )
 target_link_libraries(${PROJECT_NAME} m restructure)
+if (OPENMP_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${OpenMP_CXX_LIBRARIES})
+endif()
